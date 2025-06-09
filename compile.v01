@@ -1,0 +1,79 @@
+#!/bin/bash
+
+if [ `hostname` == zagros ]; then
+    (
+	module load gnu acml openmpi petsc/3.2-p7
+	make -j
+    )
+
+    (
+	module load gnu acml openmpi petsc/3.1-p8
+	make data-3.2CD
+    )
+fi
+
+if [[ `hostname -f` = *.cm.cluster ]]; then
+    (
+        # NO MODULE FOR COMPILER: use the default compiler, currently gcc (GCC) 4.8.5
+        module load mvapich2/gcc/64/2.2rc1
+        module load blas/gcc/64/3.8.0
+        module load lapack/gcc/64/3.8.0
+
+        # debug
+        # export CFLAGS='-g'
+        # export CFLAGS='-g -O3'
+        # optimize
+        export CFLAGS='-DNDEBUG -O3 -march=native'
+
+        # This environmental variable is set from one of the above
+        export CXXFLAGS="$CFLAGS"
+
+        # These are set by: module load blas/gcc/64/3.8.0
+#       export BLASDIR=/gpfs/software/blas/BLAS-3.8.0/
+#       export BLASLIB=blas
+
+        # This is set by: module load lapack/gcc/64/3.8.0
+#       export LAPACK_DIR=
+        export LAPACK_LIB=lapack
+
+        export HYPREINC=/gpfs/home/woaks/lib/hypre-2.11.2/include
+        export HYPRELIB=/gpfs/home/woaks/lib/hypre-2.11.2/lib
+
+        export PETSCINC='-I /gpfs/home/woaks/lib/petsc-3.2-p7/include -I /gpfs/home/woaks/lib/petsc-3.2-p7/linux-intel/include'
+        export PETSCLIB=/gpfs/home/woaks/lib/petsc-3.2-p7/linux-intel/lib
+
+        make -f makefile.seawulf
+    )
+
+    (
+        # NO MODULE FOR COMPILER: use the default compiler, currently gcc (GCC) 4.8.5
+        module load mvapich2/gcc/64/2.2rc1
+        module load blas/gcc/64/3.8.0
+        module load lapack/gcc/64/3.8.0
+
+        # debug
+        # export CFLAGS='-g'
+        # export CFLAGS='-g -O3'
+        # optimize
+        export CFLAGS='-DNDEBUG -O3 -march=native'
+
+        # This environmental variable is set from one of the above
+        export CXXFLAGS="$CFLAGS"
+
+        # These are set by: module load blas/gcc/64/3.8.0
+#       export BLASDIR=/gpfs/software/blas/BLAS-3.8.0/
+#       export BLASLIB=blas
+
+        # This is set by: module load lapack/gcc/64/3.8.0
+#       export LAPACK_DIR=
+        export LAPACK_LIB=lapack
+
+        export HYPREINC=/gpfs/home/woaks/lib/hypre-2.11.2/include
+        export HYPRELIB=/gpfs/home/woaks/lib/hypre-2.11.2/lib
+
+        export PETSCINC='-I /gpfs/home/woaks/lib/petsc-3.1-p8/include -I /gpfs/home/woaks/lib/petsc-3.1-p8/linux-intel/include'
+        export PETSCLIB=/gpfs/home/woaks/lib/petsc-3.1-p8/linux-intel/lib
+
+        make -f makefile.seawulf data-3.2CD
+    )
+fi

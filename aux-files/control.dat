@@ -1,0 +1,169 @@
+%"-" control options; "!" do not use this term
+
+Time related setting
+-dt 0.01				%(double) time step size	!!!CFL number has to be <1, recomended to <0.5, has to <0.05 as level set method is employed
+-tio 10					%(int) export datafile per tio step
+!-rstart 23200			%(int) restart the simulation from this step number, previous result files must be included in the folder
+!-rs_fsi 1				%(int 0,1)restart a FSI. 1-activate it and read FSI_DATA file,
+!-delete 1				%(int 0,1)delete result outputs except last two steps. 1-activate,
+-totalsteps 900			%(int) total number steps
+!-averaging 1			%(int 0,1,2,3) average the flow filed(avg in post-process should also be set equal to or less than this). 0-deactive; 1-velocity vectors and turbulence intensities; 2-add presure and pressure fluctuations; 3-add vorticity vectors.
+
+-ren 1.e+5				%(double)Reynolds number in the case of non-dimensional simulation. Will not be used in dimensional simulation(when level-set method is applied)
+-inv 0					%(int 0,1) 1-neglect visous iterms in momentum equation
+-laplacian 0
+-les 2					%(int 0,1,2) 0-deactivate LES; 1-Smagorinsky-Lilly model; 2-Dynamic Smagorinsky model (recommended)
+-les_eps 1.0e-8
+!-prt_eps 1.0e-8
+-max_cs 0.1
+-rans 0
+-second_order 1
+!-binary 0
+!-xyz 1
+!-kk_periodic 1			%(int 0,1) imply periodic boundary condition. The bcs.dat need to be set to non-defined value.
+!-ii_periodic 1			%(int 0,1)
+!-jj_periodic 1			%(int 0,1)
+!-jmin_wm 0
+!-jmax_wm 0
+!-imin_wm 0
+!-Shear_wm 0
+!-powerlawwallmodel 0
+!-dhl_wm 0.05
+
+%level set method
+-levelset 1				%(int 0,1) activate the levelset method. if used, dimensional units are used.
+-rho0 1000.				%(double)density of water
+-rho1 1.204 			%(double)density of air
+-mu0 1.e-3				%(double)dynamic viscosity of waver
+-mu1 1.8e-5 			%(double)dynamic viscosity of air
+-sloshing 0				%(double) consider sloshing condition. 0-do not consider; 1-2D; 2-3D.
+-stension 0				%(int 0,1) consider the surface tension
+-gy -9.81
+!-level_in 2			%(int 0,1,2) flat initial free surface with level_in_height.0- do not consider; 1-free surface normal is in z direction; 2-free surface normal is in y direction.
+-dthick  0.05			%(double) half the thickness of air/water interface. !!! to be about 2-3 del Y to have a smooth interface of water/air.
+-level_in_height 0.0	%(double) set free surface elevation(uniform vertical coordinate)
+-inlet_y 0.3
+-outlet_y 0.3
+!-fix_outlet 0			%(int 0,1)keep constant the free surface elevation at outlet boundary
+!-fix_inlet 0			%(int 0,1)
+-fix_level 0			%(int 0,1)0-do not consider it; 1-the free surface is considered but kept fixed(do not solve level set equation).
+-levelset_it 20			%(int) number of times to solve the reinitialization equation for mass conservation. Higher curvature, higher number.
+-levelset_tau 0.005		%(double) to determin psuedo-time step size used in reinitialization equation. psuedo-time step size=levelset_tau*minimun grid spacing.
+!-subdt_levelset 4
+-air_flow_levelset 0
+-levelset_weno 1    !!2 for interface only, 3 for water, 1 for everywhere, 4 water inlcuding interface
+!-export_FS_elev_center 1
+
+-levelset_solve2 0
+
+-imp 4					%(int 1,2,3,4) only support 4, which is implicit solver
+-poisson 1				%(int -1,0,1) Only support 1. poisson solver selection.
+-poisson_it 15			%(int) Maximum number of iteration for solving the poisson equation.
+-poisson_tol 1.e-12		%(double) tolerance for the maximum divergence of the flow
+-inlet 1				%(int)inflow mode on inlet plane; 1-Uniform; 13-log law(channel half height should be 1); 100-import inflow from external file.
+-init1 1
+!-channel_height 2.
+!-perturb 1				%(int 0,1) 1-imply a perturbation in initial velocity filed if non-zero initial condition is given.
+-blk 0
+-imp_tol 1.e-5			%(double)tolerance for the momentum equation, smaller than 1.e-5 is recommended
+-flux 1.e-8				%(double)0-set the velocity at inlet boundary to 1; other value-set the flux at the inlet boundary. flux=bulk inlet velocity/area of inlet cross section.
+
+-dpdz 0.0000000000001
+!-cfl .1 
+!-vnn .1
+
+-viscosity_wallmodel 0
+!-freesurface_wallmodel 0
+!-wave_average_k 0
+!-wave_k_ave 115
+!-wave_i_ave 31
+!-wave_ti_start 0
+!-wave_ti_startave 5000
+!-wave_skip 1
+!-wind_skip 30
+!-wind_start_read 0
+!-wave_start_read 0
+!-wind_recicle 300
+!-wave_recicle 5000
+
+!-wave_source_cent_z -5.0
+!-wave_angle_single 0.0  ! the angle the wave makes with the streamwise direction
+!-wave_K_single 2.0 !0.8039
+!-wave_depth 0.75 !!1.37
+!-wave_a_single 0.15 !! 0.15 !!0.0075;
+!-wave_momentum_source 2
+!-wave_sponge_layer 5
+!-wave_sponge_zs 10.0
+!-wave_sponge_z01 -20.0 !!-24.
+!-wave_sponge_z02 20.0 !36.6
+!-wave_sponge_xs 2.
+!-wave_sponge_x01 -4.25.
+!-wave_sponge_x02 2.25.
+
+-solitary_wave 1
+-solitary_wave_amplitude 0.10
+-inlet_bed_elevation 0.0
+-inlet_z_for_solitary_wave 0.0
+-ti_start_solitary_wave 0
+
+!-wave_IB 12
+-imm 1					%(int 0,1) active the immersed boundary method
+-body 2					%(int) number of bodies(IB meshes) considered
+-wallfunction 1	%(int)
+!-forced_motion 1		%(int 0,1) 0-the motion of structure is coupled with flow; 1-the motion of the structure is prescribed by Forced_Motion function in fsi_move.c.
+-fall_cyll_case 0
+!-fsi 1					%(int 0,1) activate the structure movement in a single translation DoF from dfg_ax, dgf_ay, dgf_az.
+-fsi_6dof 0
+-mrfsi 0
+-rotdir 0
+-rfsi 0
+-dgf_z 0
+-dgf_y 0
+-dgf_x 0
+-dgf_ax 0				%(int 0,1) activate this DoF
+-dgf_ay 0				%(int 0,1) activate this DoF
+-dgf_az 0				%(int 0,1) activate this DoF
+-str 0
+-red_vel 0.897597901025655210 !ured 7
+-damp    0.0
+-mu_s    0.25
+-x_c     0.				%(double)initial translation of the immersed body position
+-z_c     0.				%(double)initial translation of the immersed body position
+-y_c     0.				%(double)initial translation of the immersed body position !vertical displacement
+-x_r     0.				%(double)initial rotation axi of the immersed body position
+-z_r     0.				%(double)initial rotation axi of the immersed body position
+-y_r     0.				%(double)initial rotation axi of the immersed body position !.086 + vertical displacement
+-body_mass 19.704
+-body_inertia_x 3.77
+-body_alpha_rot_x 0.04
+-body_alpha_lin_y 25.
+-angle_x0 0.			%(double)initial rotation of the immersed body position
+-angle_y0 0.			%(double)initial rotation of the immersed body position
+-anble_z0 0.			%(double)initial rotation of the immersed body position
+
+-testfilter_ik 0
+!-testfilter_1d 
+-i_homo_filter 0
+!-j_homo_filter
+-k_homo_filter 0
+
+-save_inflow 0
+!-save_inflow_period 500
+-save_inflow_minus 0
+!-recycle 10000
+-path_inflow "./"
+
+!-temperature 1
+!-tmprt_initval 0.5
+-Pr 0.71
+-Ri_x 0
+-Ri_y 0
+-Ri_z 0
+!-les_prt 1
+-u_settling 0.
+-v_settling 0.
+-w_settling 0.
+
+!-tis 3000
+!-tie 3000
+!-ts 100

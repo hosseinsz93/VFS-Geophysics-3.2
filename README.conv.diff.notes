@@ -1,0 +1,60 @@
+Notes on the temperature code 92022-10-04:
+
+What is D_m and D_t?
+
+D_m = 1./ (user->ren * user->Pr);
+user->ren is the user supplied reynolds number
+user->Pr is user supplied in the -Pr parameter. Prandel's number?
+
+D_t = 0.5 * (pr_t[k][j][i] + pr_t[k][j][i+1]);
+
+my alpha is currently represented by (D_m + D_t)
+
+Look in the alpha value notes---
+
+              1
+   alpha = -------
+           Re * Pr
+
+
+
+Notes on convection diffusion code (2019-09-30):
+
+functions:
+RHS_Conv_Diff
+Force_Current
+Conv_Diff_IC
+SettlingVelocityCorrection
+SettlingVelocityCorrectionBack
+Depth_Averaged_Conc
+Conv_Diff_BC
+FormFunction_Conv_Diff
+Solve_Conv_Diff
+
+
+Background_Conc - initial background concentration - set to zero for dnatrax
+
+
+concentration set at line 1165 (conv_diff.c)
+
+the release diameter is 0.025m CCS
+
+
+i,j,k from using savepoints:
+R01: -2.52829, 0.48541, -0.46382158m CCS
+     minus     0.47291  -0.47632158
+     plus      0.49791  -0.45132158
+     i=236 j=10 k=143
+R02: -2.65762, 0.25211, -0.46382158m CCS
+     minus     0.23961  -0.47632158
+     plus      0.26461  -0.45132158
+     i=184 j=10 k=114
+R03: -2.78895, 0.01606, -0.46382158m CCS
+     minus     0.00356  -0.47632158
+     plus      0.02856  -0.45132158
+     i=132 j=10 k=85
+
+need to set:
+conv_diff=1
+density_current=0
+Inlet_Conc=1

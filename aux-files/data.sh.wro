@@ -1,0 +1,21 @@
+#!/bin/bash
+
+#PBS -N nyc6003data
+#PBS -m a
+#PBS -k oe
+#PBS -j oe
+#PBS -o .
+#PBS -l nodes=1:ppn=1
+#PBS -l walltime=24:00:00
+
+module load acml gnu openmpi
+
+cd "$PBS_O_WORKDIR"
+exec > data.stdout.`date '+%Y%m%d.%H%M%S'`
+
+START_TIME=`date`
+mpirun --bind-to core ./data-3.2 -tis 500 -ts 500 -tie 500
+
+echo
+echo "Start time: $START_TIME"
+echo "End time:   `date`"

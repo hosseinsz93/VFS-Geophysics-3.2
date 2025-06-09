@@ -1,0 +1,150 @@
+#!/bin/bash
+
+if [ `hostname` == zagros ]; then
+    (
+	# module load gnu acml openmpi petsc/3.2-p7
+	# make -j
+
+
+        # New build stuff
+        # debugging
+        # export OPTIMIZE=-g
+
+        # profiling
+        # export OPTIMIZE="-g -pg"
+
+        # Optimized
+        export OPTIMIZE="-DNDEBUG -O3"
+
+        export MPI_BASE=/opt/ohpc/pub/mpi/openmpi-gnu/1.10.6
+        export MPI_INC="-I ${MPI_BASE}/include"
+
+        export BLAS_LAPACK_BASE=/opt/ohpc/pub/libs/gnu/openblas/0.2.19
+        export BLAS_LAPACK_DIR="-L ${BLAS_LAPACK_BASE}/lib"
+        export BLAS_LAPACK_LIB="-l openblas"
+
+        export HYPREBASE=/home/KhosronejadGroup/lib/hypre-2.11.2
+        export HYPREINC="-I ${HYPREBASE}/src/hypre/include"
+        export HYPREDIR="-L ${HYPREBASE}/src/hypre/lib"
+        export HYPRELIB='-l HYPRE'
+        
+        export PETSC_BASE=/home/KhosronejadGroup/lib/petsc-3.2-p7
+        export PETSC_INC="-I ${PETSC_BASE}/include -I ${PETSC_BASE}/arch-linux2-c-opt/include"
+        export PETSC_DIR="-L ${PETSC_BASE}/arch-linux2-c-opt/lib"
+        export PETSC_LIB='-l petsc'
+
+	module load gnu/5.4.0 openblas/0.2.19 openmpi/1.10.6
+	make -j
+
+        echo Optimized > Og.dat
+    )
+
+    (
+	# module load gnu acml openmpi petsc/3.1-p8
+	# make data-3.1
+
+
+        # New build stuff
+        # debugging
+        # export OPTIMIZE=-g
+
+        # profiling
+        # export OPTIMIZE="-g -pg"
+
+        # Optimized
+        export OPTIMIZE="-DNDEBUG -O3"
+
+        export BLAS_LAPACK_BASE=/opt/ohpc/pub/libs/gnu/openblas/0.2.19
+        export BLAS_LAPACK_DIR="-L ${BLAS_LAPACK_BASE}/lib"
+        export BLAS_LAPACK_LIB="-l openblas"
+
+        export HYPREBASE=/home/KhosronejadGroup/lib/hypre-2.11.2
+        export HYPREINC="-I ${HYPREBASE}/src/hypre/include"
+        export HYPREDIR="-L ${HYPREBASE}/src/hypre/lib"
+        export HYPRELIB='-l HYPRE'
+
+        export PETSC_BASE=/home/KhosronejadGroup/lib/petsc-3.1-p8
+        export PETSC_INC="-I ${PETSC_BASE}/include -I ${PETSC_BASE}/linux-gnu-c-opt/include"
+        export PETSC_DIR="-L ${PETSC_BASE}/linux-gnu-c-opt/lib"
+        export PETSC_LIB='-l petsc'
+
+	module load gnu/5.4.0 openblas/0.2.19 openmpi/1.10.6
+        make data-3.1
+        make data-small-3.1
+    )
+fi
+
+if [[ `hostname -f` = *.cm.cluster ]]; then
+    (
+        # NO MODULE FOR COMPILER: use the default compiler, currently gcc (GCC) 4.8.5
+        module load mvapich2/gcc/64/2.2rc1
+        module load blas/gcc/64/3.8.0
+        module load lapack/gcc/64/3.8.0
+
+        # debug
+        # export CFLAGS='-g'
+        # export CFLAGS='-g -O3'
+        # optimize
+        export CFLAGS='-DNDEBUG -O3 -march=native'
+
+        # This environmental variable is set from one of the above
+        export CXXFLAGS="$CFLAGS"
+
+        # These are set by: module load blas/gcc/64/3.8.0
+#       export BLASDIR=/gpfs/software/blas/BLAS-3.8.0/
+#       export BLASLIB=blas
+
+        export LAPACK_DIR="/gpfs/software/lapack/lapack-3.8.0"
+        export LAPACK_LIB="${LAPACK_DIR}/liblapack.a"
+
+        export HYPREBASE=/gpfs/home/woaks/lib/hypre-2.11.2
+        export HYPREINC="-I ${HYPREBASE}/src/hypre/include"
+        export HYPREDIR="-L ${HYPREBASE}/src/hypre/lib"
+        export HYPRELIB='-l HYPRE'
+
+        export PETSC_BASE=/gpfs/home/woaks/lib/petsc-3.2-p7
+        export PETSC_INC="-I ${PETSC_BASE}/include -I ${PETSC_BASE}/arch-linux2-c-opt/include"
+        export PETSC_DIR="-L ${PETSC_BASE}/arch-linux2-c-opt/lib"
+        export PETSC_LIB='-l petsc'
+
+        make -j -f makefile.seawulf
+
+        echo Optimized > Og.dat
+    )
+
+    (
+        # NO MODULE FOR COMPILER: use the default compiler, currently gcc (GCC) 4.8.5
+        module load mvapich2/gcc/64/2.2rc1
+        module load blas/gcc/64/3.8.0
+        module load lapack/gcc/64/3.8.0
+
+        # debug
+        # export CFLAGS='-g'
+        # export CFLAGS='-g -O3'
+        # optimize
+        export CFLAGS='-DNDEBUG -O3 -march=native'
+
+        # This environmental variable is set from one of the above
+        export CXXFLAGS="$CFLAGS"
+
+        # These are set by: module load blas/gcc/64/3.8.0
+#       export BLASDIR=/gpfs/software/blas/BLAS-3.8.0/
+#       export BLASLIB=blas
+
+        export LAPACK_DIR="/gpfs/software/lapack/lapack-3.8.0"
+        export LAPACK_LIB="${LAPACK_DIR}/liblapack.a"
+
+        export HYPREBASE=/gpfs/home/woaks/lib/hypre-2.11.2
+        export HYPREINC="-I ${HYPREBASE}/src/hypre/include"
+        export HYPREDIR="-L ${HYPREBASE}/src/hypre/lib"
+        export HYPRELIB='-l HYPRE'
+
+        export PETSC_BASE=/gpfs/home/woaks/lib/petsc-3.1-p8
+        export PETSC_INC="-I ${PETSC_BASE}/include -I ${PETSC_BASE}/linux-gnu-c-opt/include"
+        export PETSC_DIR="-L ${PETSC_BASE}/linux-gnu-c-opt/lib"
+        export PETSC_LIB='-l petsc'
+
+        make -f makefile.seawulf data-3.1
+        make -f makefile.seawulf data-small-3.1
+    )
+fi

@@ -1,0 +1,56 @@
+conv_diff
+
+savepoints
+nsave_points
+
+savepoint init in write_data
+write_data called from solver
+
+savepoint written in main.c in write_data
+
+!!! change to include conc data
+
+processing of conv_diff will need to take place in rhs.cconvection_diffusion.c
+
+Conv_Diff_IC??  initial condition, don't do it here.
+
+if( nvert[k][j][i]>1.5) {   //Solid nodes common command for all
+
+update
+main - main.c
+  Ucont_P_Binary_Input - main.c - 3150 if rstart_flg
+    Conv_Diff_IC - convection_Diffusion.c  if conv_diff and not cfield file
+  Flow_Solver - solvers.c 3474
+    Conv_Diff_IC - convection_Diffusion.c  if conv_diff and ti=0 634
+    Solve_Conv_Diff - convection_diffusion.c  if conv_diff 1020
+      FormFunction_Conv_Diff - convection_diffusion.c 1946
+               This is used as a function sent to SNESSetFunction
+        Conv_Diff_BC - convection_Diffusion.c 1861
+        RHS_Conv_Diff - convection_Diffusion.c  1865
+      Conv_Diff_BC - convection_Diffusion.c 2042
+    Force_Current - convection_Diffusion.c  if conv_diff and density_current 1043
+
+inlet profile
+<0    sets ubcs[k][j][i].z to -1.
+0     sets to Flux_in (4.104388e-04)
+1     uniform flow (default)
+2     uniform flow with noise
+3     parabolic with channel height 2
+4     parabolic with channel height 1
+10    Power law for hemisphere case
+11    backward facing step
+12    pipe shear stress test
+13    periodic channel flow
+14    curved pipe flow (Anwer)
+15    round jet (Longmire)
+16    periodic pipe flow
+17    2D Taylor-Green vortex
+18    2D Kovasznay flow
+19    sets: ucont[k][j][i].x = icsi[k][j][i].z;
+            ucont[k][j][i].y = jeta[k][j][i].z;
+            ucont[k][j][i].z = kzet[k][j][i].z;
+20    enright test
+21    laminar poiseulle flow profile
+100   saved inflow data for LES
+1000  Set the conc BCs at the inlet to
+      Inlet_Conc (default 0, changed by -inlet_conc)

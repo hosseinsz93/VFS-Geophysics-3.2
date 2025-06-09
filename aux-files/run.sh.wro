@@ -1,0 +1,24 @@
+#!/bin/bash
+### Job name
+#PBS -N nyc6003pre
+### Mail to user
+#PBS -m ae
+#PBS -k o
+#PBS -l nodes=2:ppn=16
+#PBS -l walltime=240:00:00
+#PBS -j oe
+
+module load acml gnu openmpi
+
+FILENAME=run.stdout.`date '+%Y%m%d.%H%M%S'`
+echo Output filename is $FILENAME
+
+cd "$PBS_O_WORKDIR"
+exec > $FILENAME
+
+START_TIME=`date`
+mpirun --bind-to core ./VFS-Geophysics-3.2
+
+echo
+echo "Start time: $START_TIME"
+echo "End time:   `date`"

@@ -1,0 +1,8 @@
+#*#
+*.d
+*.o
+*~
+.#*
+.bak.*
+VFS-Geophysics-3.2CD
+data-3.2CD

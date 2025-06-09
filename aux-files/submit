@@ -1,0 +1,275 @@
+#!/usr/bin/python
+
+# /cygdrive/c/Program\ Files/Python27/python.exe
+
+# data-3.2CD
+
+import argparse
+from datetime import datetime
+from dateutil import tz
+import os
+import random
+import re
+import socket
+import string
+import subprocess
+import sys
+
+DEBUG = False
+# DEBUG = True
+
+
+def submit():
+    if DEBUG:
+        import pdb
+        pdb.set_trace()
+
+    host = specHostname()
+
+    # schedulerType is used in myparser
+    if host == 'zagros':
+        schedulerType = 'PBS'
+
+    if host == 'seawulf':
+        schedulerType = 'slurm'
+
+    ( args, generatedOutputFilename ) = myparser(schedulerType)
+
+    # Generate the stdout filename
+    dst = tz.gettz('America/New_York')
+    time = datetime.now(dst)
+    if args.cfd:
+        stdoutname = 'run'
+    else:
+        stdoutname = 'data'
+    stdoutname += '.stdout.{:0>4d}{:0>2d}{:0>2d}.{:0>2d}{:0>2d}{:0>2d}' \
+        .format(time.year, time.month, time.day, \
+                time.hour, time.minute, time.second)
+    print 'stdout filename is {}'.format(stdoutname)
+
+
+    # Setup executable names
+    if host == 'zagros':
+	DATA_PROG = '/mnt/lustre/wayne/bin/data-3.2CD'
+	VFS_PROG = '/mnt/lustre/wayne/bin/VFS-Geophysics-3.2CD'
+
+    if host == 'seawulf':
+        DATA_PROG = '/gpfs/home/woaks/bin/data-v3.2CD'
+        VFS_PROG = '/gpfs/home/woaks/bin/VFS-Geophysics-3.2CD'
+
+    if not args.program:
+        if args.cfd:
+            args.program = VFS_PROG
+        else:
+            args.program = DATA_PROG
+
+
+    with open(args.output, 'w') as f:
+        f.write('#!/bin/bash\n')
+        f.write('\n')
+        if schedulerType == 'PBS':
+            f.write('#PBS -N {}\n'.format(args.jobname))
+            f.write('#PBS -l nodes={}:ppn={}\n'.format(args.nodes, args.ppn))
+            f.write('#PBS -l walltime={}\n'.format(args.time))
+            # f.write('#PBS -o {}\n'.format(stdoutname))
+            f.write('#PBS -m a\n')
+            f.write('#PBS -k oe\n')
+            f.write('#PBS -j oe\n')
+
+
+            f.write('\n')
+            f.write('cd "$PBS_O_WORKDIR"\n')
+    
+        if schedulerType == 'slurm':
+            f.write('#SBATCH --job-name={}\n'.format(args.jobname))
+            f.write('#SBATCH --nodes={}\n'.format(args.nodes))
+            f.write('#SBATCH --ntasks-per-node={}\n'.format(args.ppn))
+            f.write('#SBATCH --time={}\n'.format(args.time))
+            f.write('#SBATCH -p {}\n'.format(args.queue))
+            f.write('#SBATCH --output={}\n'.format(stdoutname))
+    
+        f.write('\n')
+        if schedulerType == 'PBS':
+            f.write('exec > {} 2>&1\n'.format(stdoutname))
+        else:
+            f.write('exec 2>&1\n')
+
+
+        if schedulerType == 'slurm':
+            f.write('\n')
+            f.write('\n')
+            f.write('echo \'>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\'\n')
+            f.write('echo \'>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\'\n')
+            f.write('echo \n')
+            f.write('echo \'job id:\' $SLURM_JOB_ID\n')
+            f.write('echo \n')
+
+        f.write('\n')
+        f.write('\n')
+        f.write('echo \'>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\'\n')
+        f.write('echo \'>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\'\n')
+        f.write('echo \'>>>>>{}\'\n'.format(args.output))
+        f.write('echo \n')
+        f.write('cat {}\n'.format(args.output))
+        f.write('echo \n')
+        if args.cfd:
+            f.write('\n')
+            f.write('echo \'>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\'\n')
+            f.write('echo \'>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\'\n')
+            f.write('echo \'>>>>>bcs.dat\'\n')
+            f.write('echo \n')
+            f.write('cat bcs.dat\n')
+            f.write('echo \n')
+            f.write('\n')
+            f.write('echo \'>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\'\n')
+            f.write('echo \'>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\'\n')
+            f.write('echo \'>>>>>control.dat\'\n')
+            f.write('echo \n')
+            f.write('cat control.dat\n')
+            f.write('echo \n')
+
+        f.write('echo \'<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\'\n')
+        f.write('echo \'<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\'\n')
+
+
+        if (generatedOutputFilename):
+            f.write('\n')
+            f.write('\\rm {}\n'.format(args.output))
+
+        f.write('\n')
+        f.write('START_TIME=`date`\n')
+        f.write('echo\n')
+        f.write('echo "Start time: $START_TIME"\n')
+    
+        progargs = ' '
+        if args.data:
+            progargs = ' -tis {} -ts {} -tie {}'.format(args.tis, args.ts, args.tie)
+
+        f.write('\n')
+        if schedulerType == 'PBS':
+            f.write('module load acml gnu openmpi\n')
+            f.write('\n')
+            f.write('mpirun --bind-to core {}{}\n'.format(args.program, progargs))
+            if args.data and args.avg:
+                f.write('mpirun --bind-to core {} -avg {}{}\n'.format(args.program, args.avg, progargs))
+    
+        if schedulerType == 'slurm':
+            f.write('module load intel/mpi/64/2020/20.0.0\n')
+            f.write('module load intel/compiler/64/2020/20.0.0\n')
+            f.write('module load intel/mkl/64/2020/20.0.0\n')
+            f.write('\n')
+            f.write('mpirun {}{}\n'.format(args.program, progargs))
+            if args.data and args.avg:
+                f.write('mpirun {} -avg {}{}\n'.format(args.program, args.avg, progargs))
+    
+    
+        f.write('\n')
+        f.write('echo\n')
+        f.write('echo "Start time: $START_TIME"\n')
+        f.write('echo "End time:   `date`"\n')
+
+
+    # Submit the job.
+    if not args.nq:
+        if host == 'zagros':
+            qSubmit = 'qsub'
+        else:
+            qSubmit = 'sbatch'
+ 
+        plotsp = subprocess.Popen([ qSubmit, args.output ], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        (stdoutdata, stderrdata) = plotsp.communicate()
+        print stdoutdata
+
+
+
+
+# My parse parameters.  I mostly want the same parameters, but for data runs, I want some specifically for it.
+# -c --cfd: submit a cfd job
+# -d --data: submit a job to generate results data
+
+def myparser(schedulerType):
+    mainparser = argparse.ArgumentParser()
+
+    # Command line options used to modify parameter list.
+    hbool = False
+    databool = False
+    if len(sys.argv) >= 2:
+        for i in range(1, len(sys.argv)):
+            if sys.argv[i] == '-h':
+                hbool = True
+            if sys.argv[i] == '-d' or sys.argv[i] == '--data':
+                databool = True
+
+    # You can only do a cfd or a data job
+    exclgroup = mainparser.add_mutually_exclusive_group()
+    exclgroup.add_argument('-c', '--cfd', help='Submit a cfd job', action='store_true', default=False)
+    exclgroup.add_argument('-d', '--data', help='Submit a job to generate results data', action='store_true', default=False)
+
+    # These are the common options.
+    mainparser.add_argument('-j', '--jobname', help='Name for this job', required=True)
+    mainparser.add_argument('-N', '--nodes', help='number of nodes for job', default=1, type=int)
+    mainparser.add_argument('-n', '--ppn', help='number of processors per node', default=1, type=int)
+    mainparser.add_argument('-o', '--output', help='Queue submission filename', default=None)
+    mainparser.add_argument('-t', '--time', help='elapsed time needed', default='1:00:00')
+    mainparser.add_argument('--nq', action='store_true', help='Don\'t queue job', default=False)
+
+    # Not needed for zagros PBS, needed for slurm.  I don't want it to show up in the help for
+    # zagros but I still want it in so I can use the same command line from seawulf.
+    if schedulerType == 'slurm' or not hbool:
+        mainparser.add_argument('-q', '--queue', help='computer queue', default='short-28core')
+
+    # Override the program to run
+    mainparser.add_argument('-x', '--program', help='program path')
+
+    # These are the options for --data only.  They will only show up if -h or --data are in the command line.
+    if hbool or databool:
+        mainparser.add_argument('--avg', help='Specify variable averaging (for --data only)', default=None, type=int)
+        mainparser.add_argument('--tis', help='Beginning timestep (for --data only)', required=True, type=int)
+        mainparser.add_argument('--ts',  help='Step size between beginning and ending timestep (for --data only)', default=None, type=int)
+        mainparser.add_argument('--tie', help='Ending timestep (for --data only)', default=None, type=int)
+
+    arg = mainparser.parse_args()
+    if not arg.cfd ^ arg.data:
+        arg.cfd=True
+
+    # print arg
+
+    if arg.data:
+        if not arg.tie:
+            arg.tie = arg.tis
+        if not arg.ts:
+            arg.ts = 1
+
+    generatedOutputFilename = False
+    if not arg.output:
+        generatedOutputFilename = True
+        arg.output = 'submit.tmp.' + randomString() + '.sh'
+
+    return ( arg, generatedOutputFilename )
+
+
+
+def randomString():
+    avail = string.ascii_letters + string.digits
+    return ''.join(random.choice(avail) for i in range(8))
+
+
+
+# Is this hostname supported?
+def specHostname():
+    host = socket.getfqdn()
+    # print 'hostname is {}'.format(host)
+
+    if host == 'zagros':
+        return 'zagros'
+
+    if re.search('\.cm\.cluster$', host):
+        return 'seawulf'
+
+    print 'This host, {}, is not yet supported.'
+    exit(1)
+        
+
+
+if __name__ == '__main__':
+    submit()

@@ -1,0 +1,124 @@
+VFS-WIND-V3.2CD
+
+These entries DON'T put the source in the ...dev directores
+
+SEAWULF
+from seawulf:
+rsynckeeptime --exclude-from=rsync.exclude woaks@seawulf:/gpfs/home/woaks/vfs/vfs-wind-v3.2CD/ /home/wayne/dev/vfs-wind-v3.2CD.from.seawulf/
+
+to seawulf:
+meld /home/wayne/dev/vfs-wind-v3.2CD/ /home/wayne/dev/vfs-wind-v3.2CD.from.seawulf/
+
+rsynckeeptime /home/wayne/dev/vfs-wind-v3.2CD.from.seawulf/ woaks@seawulf:/gpfs/home/woaks/vfs/vfs-wind-v3.2CD/
+
+
+ZAGROS
+from zagros:
+rsynckeeptime --exclude-from=rsync.exclude $Z/vfs/vfs-wind-v3.2CD/ /home/wayne/dev/vfs-wind-v3.2CD.from.zagros/
+
+to zagros:
+meld /home/wayne/dev/vfs-wind-v3.2CD/ /home/wayne/dev/vfs-wind-v3.2CD.from.zagros/
+
+rsynckeeptime /home/wayne/dev/vfs-wind-v3.2CD.from.zagros/ $Z/vfs/vfs-wind-v3.2CD/
+
+These entries put the source in the ...dev directores
+
+SEAWULF
+from seawulf:
+rsynckeeptime --exclude-from=rsync.exclude woaks@seawulf:/gpfs/home/woaks/vfs/vfs-wind-v3.2CD.dev/ /home/wayne/dev/vfs-wind-v3.2CD.dev.from.seawulf/
+
+to seawulf:
+meld /home/wayne/dev/vfs-wind-v3.2CD/ /home/wayne/dev/vfs-wind-v3.2CD.dev.from.seawulf/
+
+rsynckeeptime /home/wayne/dev/vfs-wind-v3.2CD.dev.from.seawulf/ woaks@seawulf:/gpfs/home/woaks/vfs/vfs-wind-v3.2CD.dev/
+
+
+ZAGROS
+from zagros:
+rsynckeeptime --exclude-from=rsync.exclude $Z/vfs/vfs-wind-v3.2CD.dev/ /home/wayne/dev/vfs-wind-v3.2CD.dev.from.zagros/
+
+to zagros:
+meld /home/wayne/dev/vfs-wind-v3.2CD/ /home/wayne/dev/vfs-wind-v3.2CD.dev.from.zagros/
+
+rsynckeeptime /home/wayne/dev/vfs-wind-v3.2CD.dev.from.zagros/ $Z/vfs/vfs-wind-v3.2CD.dev/
+
+-------------------------------
+
+
+COMMON
+
+
+from zagros:
+to zagros:
+(
+cd /home/wayne/dev/common.from.zagros
+rsynckeeptime wayne@zagros:/home/wayne/bin/calcTime wayne@zagros:/home/wayne/bin/copyfromzagros wayne@zagros:/home/wayne/bin/copytozagros wayne@zagros:/home/wayne/bin/lastTimeStep.py wayne@zagros:/home/wayne/bin/plotConverge wayne@zagros:/home/wayne/bin/plotFlux wayne@zagros:/home/wayne/bin/plotKE wayne@zagros:/home/wayne/bin/plotTime wayne@zagros:/home/wayne/bin/submit wayne@zagros:/mnt/lustre/wayne/.emacs wayne@zagros:/mnt/lustre/wayne/.emacs.d wayne@zagros:/mnt/lustre/wayne/.profile wayne@zagros:/mnt/lustre/wayne/.profile.d ./
+)
+
+to zagros:
+(
+cd /home/wayne/dev/common.from.zagros
+rsynckeeptime calcTime copyfromzagros copytozagros lastTimeStep.py plotConverge plotFlux plotKE plotTime submit wayne@zagros:/home/wayne/bin/
+rsynckeeptime .emacs .emacs.d .profile .profile.d wayne@zagros:/mnt/lustre/wayne/
+)
+
+
+
+from seawulf:
+(
+cd /home/wayne/dev/common.from.seawulf
+rsynckeeptime woaks@seawulf:/gpfs/home/woaks/bin/calcTime woaks@seawulf:/gpfs/home/woaks/bin/copyfromzagros woaks@seawulf:/gpfs/home/woaks/bin/copytozagros woaks@seawulf:/gpfs/home/woaks/bin/lastTimeStep.py woaks@seawulf:/gpfs/home/woaks/bin/plotConverge woaks@seawulf:/gpfs/home/woaks/bin/plotFlux woaks@seawulf:/gpfs/home/woaks/bin/plotKE woaks@seawulf:/gpfs/home/woaks/bin/plotTime woaks@seawulf:/gpfs/home/woaks/bin/submit woaks@seawulf:/gpfs/home/woaks/.emacs woaks@seawulf:/gpfs/home/woaks/.emacs.d woaks@seawulf:/gpfs/home/woaks/.profile woaks@seawulf:/gpfs/home/woaks/.profile.d .
+)
+
+to seawulf:
+(
+cd /home/wayne/dev/common.from.seawulf
+rsynckeeptime calcTime copyfromzagros copytozagros lastTimeStep.py plotConverge plotFlux plotKE plotTime submit woaks@seawulf:/gpfs/home/woaks/bin/
+rsynckeeptime .emacs .emacs.d .profile .profile.d woaks@seawulf:/gpfs/home/woaks/
+)
+
+meld /home/wayne/dev/common.from.seawulf /home/wayne/dev/common.from.zagros
+
+-------------------------------
+
+
+interactive session on zagros:
+
+cat > inter.sh << EOF
+#!/bin/bash
+#PBS -N LPT02
+#PBS -l nodes=1:ppn=16
+#PBS -l walltime=240:00:00
+EOF
+
+qsub -I inter.sh
+
+Debugging on zagros
+
+cd /mnt/lustre/wayne/cyl
+
+. ~/.profile
+
+prepath /usr/lib/hpc/gnu7/mpi/mvapich2/2.3.3/bin
+prelib /usr/lib/hpc/gnu7/mpi/mvapich2/2.3.3/lib64
+
+prepath /mnt/lustre/wayne/vfs/gdb-10.1/gdb
+prelib /mnt/lustre/wayne/vfs/gdb-10.1
+module load acml gnu openmpi
+
+gdb /mnt/lustre/wayne/vfs/vfs-wind-v3.2CD.dev/data-3.2CD |& tee zzzz.stdout
+
+r -tis 800 -ftley 0
+
+          from pointwise
+i 0-102   101
+j 0-102   101
+k 0-742   741
+
+b 2949
+
+b ReadCoordinates
+
+b calcFTLE
+
+b Ucont_P_Binary_Input1
